@@ -7,25 +7,6 @@ import {
 } from 'react-native-reanimated';
 
 function App() {
-  const isInPipModeValue = useSharedValue(false);
-
-  const [isInPipModeState, setIsInPipModeState] = React.useState(false);
-
-  React.useEffect(() => {
-    DeviceEventEmitter.addListener('onPipModeChange', ({isInPipMode}) => {
-      console.log('what is happening', 'pip mode changed', isInPipMode);
-      setIsInPipModeState(isInPipMode);
-    });
-    return () => {
-      DeviceEventEmitter.removeAllListeners('onPipModeChange');
-    };
-  }, [setIsInPipModeState]);
-
-  React.useLayoutEffect(() => {
-    console.log('what is happening', 'useLayoutEffect');
-    isInPipModeValue.value = isInPipModeState;
-  });
-
   const showPipViewValue = useSharedValue(false);
   const [showPipView, setShowPipView] = React.useState(false);
 
@@ -43,12 +24,15 @@ function App() {
     [showPipViewValue],
   );
 
-  useAnimatedReaction(
-    () => isInPipModeValue.value,
-    newIsInPipModeValue => {
-      runOnJS(pipModeChangedCallback)(newIsInPipModeValue);
-    },
-  );
+  React.useEffect(() => {
+    DeviceEventEmitter.addListener('onPipModeChange', ({isInPipMode}) => {
+      console.log('what is happening', 'pip mode changed', isInPipMode);
+      pipModeChangedCallback(isInPipMode);
+    });
+    return () => {
+      DeviceEventEmitter.removeAllListeners('onPipModeChange');
+    };
+  }, [pipModeChangedCallback]);
 
   useAnimatedReaction(
     () => showPipViewValue.value,
